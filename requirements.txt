@@ -150,8 +150,6 @@ sniffio==1.3.1
 soupsieve==2.6
 sympy==1.13.2
 tenacity==8.5.0
-# Editable install with no version control (text-generation-server==1.3.4)
--e /home/lune/text-generation-inference/server
 text-unidecode==1.3
 texttable==1.7.0
 tiktoken==0.7.0

@@ -55,28 +55,36 @@ def index():
 
 @app.route('/api/table1')
 def api_table1():
-    json_dir = "ddxplus_top_10"
+    json_dir = os.path.abspath("ddxplus_top_10")  # Use absolute path
+    if not os.path.exists(json_dir):
+        return jsonify({"error": "Directory not found"}), 404  # Handle missing directory
     ddxplus_top_10 = [os.path.join(json_dir, f) for f in os.listdir(json_dir) if f.endswith('.json')]
     items = parse_json_data(ddxplus_top_10)
     return jsonify({"items": items})
 
 @app.route('/api/table2')
 def api_table2():
-    json_dir = "medqa_top_10"
+    json_dir = os.path.abspath("medqa_top_10")  # Use absolute path
+    if not os.path.exists(json_dir):
+        return jsonify({"error": "Directory not found"}), 404  # Handle missing directory
     medqa_top_10 = [os.path.join(json_dir, f) for f in os.listdir(json_dir) if f.endswith('.json')]
     items = parse_json_data(medqa_top_10)
     return jsonify({"items": items})
 
 @app.route('/api/table3')
 def api_table3():
-    json_dir = "ddxplus_bottom_10"
+    json_dir = os.path.abspath("ddxplus_bottom_10")  # Use absolute path
+    if not os.path.exists(json_dir):
+        return jsonify({"error": "Directory not found"}), 404  # Handle missing directory
     ddxplus_bottom_10 = [os.path.join(json_dir, f) for f in os.listdir(json_dir) if f.endswith('.json')]
     items = parse_json_data(ddxplus_bottom_10)
     return jsonify({"items": items})
 
 @app.route('/api/table4')
 def api_table4():
-    json_dir = "medqa_bottom_10"
+    json_dir = os.path.abspath("medqa_bottom_10")  # Use absolute path
+    if not os.path.exists(json_dir):
+        return jsonify({"error": "Directory not found"}), 404  # Handle missing directory
     medqa_bottom_10 = [os.path.join(json_dir, f) for f in os.listdir(json_dir) if f.endswith('.json')]
     items = parse_json_data(medqa_bottom_10)
     return jsonify({"items": items})
@@ -87,7 +95,7 @@ def submit_feedback():
     
     # Determine the table based on the index or type
     table_name = f'table_{data["index"] // 10 + 1}'  # Example logic to determine table name
-    file_path = os.path.join(DATA_DIR, f'{table_name}.json')
+    file_path = os.path.abspath(os.path.join(DATA_DIR, f'{table_name}.json'))  # Use absolute path
 
     # Load existing data
     if os.path.exists(file_path):

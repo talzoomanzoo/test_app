@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark Annotation</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f4f4f4;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            white-space: pre-wrap;
+        }
+        .button-container {
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button.active {
+            background-color: #0056b3;
+        }
+        .description, .dataset-description {
+            background-color: #e7f3ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Benchmark Annotation</h1>
+    <p class="description">This task involves annotating benchmark data to evaluate and improve model predictions. Select a dataset to view and analyze the results.</p>
+    <div class="button-container">
+        <button id="loadTable1" class="button">DDXPlus: High Quality Feedback</button>
+        <button id="loadTable2" class="button">MedQA: High Quality Feedback</button>
+    </div>
+    <div class="button-container">
+        <button id="loadTable3" class="button">DDXPlus: Low Quality Feedback</button>
+        <button id="loadTable4" class="button">MedQA: Low Quality Feedback</button>
+    </div>
+    <div id="datasetDescription" class="dataset-description">
+        <!-- Description for the selected dataset will appear here -->
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Input</th>
+                <th>Initial Response</th>
+                <th>Answer</th>
+                <th>Initial Prediction</th>
+                <th>Initial Feedback</th>
+                <th>Corrected Prediction</th>
+                <th>Evaluation</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Table rows will be dynamically loaded here -->
+        </tbody>
+    </table>
+    <script>
+        $(document).ready(function() {
+            // Function to load table data
+            function loadTable(url) {
+                $.ajax({
+                    url: url,
+                    method: "GET",
+                    success: function(data) {
+                        // Update the table body with new rows
+                        $('#tableBody').html('');
+                        data.items.forEach((item, index) => {
+                            $('#tableBody').append(`
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${item.input}</td>
+                                    <td>${item.initial_response}</td>
+                                    <td>${item.label}</td>
+                                    <td>${item.initial_prediction}</td>
+                                    <td>${item.initial_feedback}</td>
+                                    <td>${item.corrected_prediction}</td>
+                                    <td>${item.evaluation}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">
+                                        <div>
+                                            <label for="likert-${index}-feedback">Rate the quality of the <strong>INITIAL FEEDBACK</strong> in terms of its helpfulness in giving the final answer. 1: Poor, 5: Great</label>
+                                            <select id="likert-${index}-feedback" class="likert">
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="likert-${index}-evaluation">Rate the appropriateness of the <strong>EVALUATION</strong> on the <strong>INITIAL FEEDBACK</strong>. 1: Poor, 5: Great</label>
+                                            <select id="likert-${index}-evaluation" class="likert">
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="feedback-${index}">Please give feedback on how evaluation criteria can be bettered.</label>
+                                            <textarea id="feedback-${index}" class="feedback" rows="5" style="width: 80%; height: 100px;" placeholder="Enter your feedback here..."></textarea>
+                                        </div>
+                                        <button class="submit-feedback" data-index="${index}">Submit All Feedback</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+
+                        // Attach event listeners to the submit buttons
+                        $('.submit-feedback').click(function() {
+                            const index = $(this).data('index');
+
+                            let likertValue, feedbackValue;
+
+                            likertValue = $(`#likert-${index}-feedback`).val();
+                            feedbackValue = $(`#feedback-${index}`).val();
+
+                            // Send the data to the server (you need to implement the endpoint)
+                            $.ajax({
+                                url: '/api/submit_feedback', // Update with your actual endpoint
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    likert: likertValue,
+                                    feedback: feedbackValue,
+                                    index: index,
+                                    type: 'all-feedback' // Include the type of feedback
+                                }),
+                                success: function(response) {
+                                    alert('Feedback submitted successfully!');
+                                },
+                                error: function(err) {
+                                    console.error("Error submitting feedback", err);
+                                    alert('Failed to submit feedback.');
+                                }
+                            });
+                        });
+                    },
+                    error: function(err) {
+                        console.error("Error loading data", err);
+                    }
+                });
+            }
+
+            // Event listeners for buttons
+            $('.button').click(function() {
+                // Remove 'active' class from all buttons
+                $('.button').removeClass('active');
+                // Add 'active' class to the clicked button
+                $(this).addClass('active');
+                
+                // Load the appropriate table and update description
+                let description = '';
+                if (this.id === 'loadTable1') {
+                    loadTable('/api/table1');
+                    description = 'DDXPlus is a dataset focused on differential diagnosis, providing a comprehensive set of medical cases for analysis. These are the cases with the <strong>top-10 high-quality feedbacks</strong>, among which the answer and the prediction after the initial feedback <strong>match</strong>.';
+                } else if (this.id === 'loadTable2') {
+                    loadTable('/api/table2');
+                    description = 'MedQA is a medical question-answering dataset designed to test the ability of models to understand and respond to medical queries. These are the cases with the <strong>top-10 high-quality feedbacks</strong>, among which the answer and the prediction after the initial feedback <strong>match</strong>.';
+                } else if (this.id === 'loadTable3') {
+                    loadTable('/api/table3');
+                    description = 'DDXPlus is a dataset focused on differential diagnosis, providing a comprehensive set of medical cases for analysis. These are the cases with the <strong>bottom-10 low-quality feedbacks</strong>, among which the answer and the prediction after the initial feedback <strong>are not a match</strong>.';
+                } else if (this.id === 'loadTable4') {
+                    loadTable('/api/table4');
+                    description = 'MedQA is a medical question-answering dataset designed to test the ability of models to understand and respond to medical queries. These are the cases with the <strong>bottom-10 low-quality feedbacks</strong>, among which the answer and the prediction after the initial feedback <strong>are not a match</strong>.';
+                }
+                $('#datasetDescription').html(description);
+            });
+        });
+    </script>
+</body>
+</html>
